@@ -11,9 +11,15 @@ body {
 }
 
 #controls button {
-    height: 4rem;
-    width: 10rem;
-    box-shadow: inset 0 0 0 1px #eedc00, inset 0 1px 2px rgba(255, 255, 255, 0.5), inset 0 -1px 2px rgba(0, 0, 0, 0.5);
+    height: 3rem;
+    width: 7rem;
+    border-radius: 15px;
+    margin-left: 1rem;
+}
+
+#controls button:hover {
+    background-color: grey;
+    color: white;
 }
 
 #board {
