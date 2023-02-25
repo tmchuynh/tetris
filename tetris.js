@@ -159,7 +159,7 @@ app.BoardView = Backbone.View.extend({
     if (this.paused) {
       $('#pause').html('Unpause (p)');
       $('#message').html('Paused.')
-      $('#message').style.display = 'flex';
+      $('#message').show();
       clearInterval(app.interval);
     } else {
       $('#pause').html('Pause (p)');
