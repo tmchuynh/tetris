@@ -1,744 +1,531 @@
-class Position {
-    constructor(x, y) {
-      this.x = x;
-      this.y = y;
-    }
+var app = app || {};
+
+app.Block = Backbone.Model.extend({
+
+  defaults: {
+    x: 0,
+    y: 0
+  },
+
+  initialize: function () {
+    var shape = this.get('shape');
+    this.set('width', shape[0].length);
+    this.set('height', shape.length);
   }
-  
-  class Block {
-    constructor(x, y) {
-      this.x = x;
-      this.y = y;
-  
-      let block = document.createElement("div");
-      block.setAttribute("class", "block");
-      $(block).append(
-        "<div class='inner-tile'><div class='inner-inner-tile'></div></div>"
-      );
-      this.element = block;
-    }
-  
-    init() {
-      $("#board").append(this.element);
-    }
-  
-    render() {
-      $(this.element).css({
-        left: this.y * $(this.element).innerWidth() + "px",
-        top: this.x * $(this.element).innerHeight() + "px"
-      });
-    }
-  
-    fall() {
-      this.x += 1;
-    }
-  
-    moveRight() {
-      this.y += 1;
-    }
-  
-    moveLeft() {
-      this.y -= 1;
-    }
-  
-    rightPosition() {
-      return new Position(this.x, this.y + 1);
-    }
-  
-    leftPosition() {
-      return new Position(this.x, this.y - 1);
-    }
-  
-    getPosition() {
-      return new Position(this.x, this.y);
-    }
-  
-    flash() {
-      return window.animatelo.flash(this.element, {
-        duration: 500
-      });
-    }
-  
-    destroy() {
-      $(this.element).remove();
-    }
-  }
-  
-  class Shape {
-    constructor(blocks) {
-      this.blocks = blocks;
-    }
-  
-    getBlocks() {
-      return Array.from(this.blocks);
-    }
-  
-    init() {
-      for (let block of this.blocks) {
-        block.init();
-      }
-    }
-  
-    render() {
-      for (let block of this.blocks) {
-        block.render();
-      }
-    }
-  
-    fallingPositions() {
-      return this.blocks
-        .map(b => b.getPosition())
-        .map(p => new Position(p.x + 1, p.y));
-    }
-  
-    fall() {
-      for (let block of this.blocks) {
-        block.fall();
-      }
-    }
-  
-    rightPositions() {
-      return this.blocks.map(b => b.rightPosition());
-    }
-  
-    leftPositions() {
-      return this.blocks.map(b => b.leftPosition());
-    }
-  
-    moveRight() {
-      for (let block of this.blocks) {
-        block.moveRight();
-      }
-    }
-  
-    moveLeft() {
-      for (let block of this.blocks) {
-        block.moveLeft();
-      }
-    }
-  
-    clear() {
-      for (let block of this.blocks) {
-        block.destroy();
-      }
-      this.blocks = [];
-    }
-  
-    addBlocks(blocks) {
-      for (let block of blocks) {
-        this.blocks.push(block);
-      }
-    }
-  
-    rotate() {
-      //do nothing
-    }
-  
-    rotatePositions() {
-      //do nothing
-    }
-  }
-  
-  class Square extends Shape {
-    constructor(x, y) {
-      let blocks = [];
-      blocks.push(new Block(x, y));
-      blocks.push(new Block(x, y + 1));
-      blocks.push(new Block(x + 1, y));
-      blocks.push(new Block(x + 1, y + 1));
-      super(blocks);
-    }
-  }
-  
-  class LShape extends Shape {
-    constructor(x, y) {
-      let blocks = [];
-      blocks.push(new Block(x, y));
-      blocks.push(new Block(x - 1, y));
-      blocks.push(new Block(x + 1, y));
-      blocks.push(new Block(x + 1, y + 1));
-      super(blocks);
-      this.position = 0;
-    }
-  
-    rotate() {
-      let blocks = this.rotatePositions().map(p => new Block(p.x, p.y));
-      this.clear();
-      this.addBlocks(blocks);
-      this.position = this.getNextPosition();
-    }
-  
-    rotatePositions() {
-      let pos = this.getBlocks()
-        .shift()
-        .getPosition();
-      let x = pos.x;
-      let y = pos.y;
-      let positions = [];
-      switch (this.getNextPosition()) {
-        case 0:
-          {
-            positions.push(new Position(x, y));
-            positions.push(new Position(x - 1, y));
-            positions.push(new Position(x + 1, y));
-            positions.push(new Position(x + 1, y + 1));
-          }
-          break;
-        case 1:
-          {
-            positions.push(new Position(x, y));
-            positions.push(new Position(x, y - 1));
-            positions.push(new Position(x, y + 1));
-            positions.push(new Position(x + 1, y - 1));
-          }
-          break;
-        case 2:
-          {
-            positions.push(new Position(x, y));
-            positions.push(new Position(x - 1, y - 1));
-            positions.push(new Position(x - 1, y));
-            positions.push(new Position(x + 1, y));
-          }
-          break;
-        case 3:
-          {
-            positions.push(new Position(x, y));
-            positions.push(new Position(x, y - 1));
-            positions.push(new Position(x, y + 1));
-            positions.push(new Position(x - 1, y + 1));
-          }
-          break;
-      }
-      return positions;
-    }
-  
-    getNextPosition() {
-      return (this.position + 1) % 4;
-    }
-  }
-  
-  class TShape extends Shape {
-    constructor(x, y) {
-      let blocks = [];
-      blocks.push(new Block(x, y));
-      blocks.push(new Block(x, y - 1));
-      blocks.push(new Block(x + 1, y));
-      blocks.push(new Block(x, y + 1));
-      super(blocks);
-      this.position = 0;
-    }
-  
-    rotate() {
-      let blocks = this.rotatePositions().map(p => new Block(p.x, p.y));
-      this.clear();
-      this.addBlocks(blocks);
-      this.position = this.getNextPosition();
-    }
-  
-    rotatePositions() {
-      let pos = this.getBlocks()
-        .shift()
-        .getPosition();
-      let x = pos.x;
-      let y = pos.y;
-      let positions = [];
-      switch (this.getNextPosition()) {
-        case 0:
-          {
-            positions.push(new Position(x, y));
-            positions.push(new Position(x, y - 1));
-            positions.push(new Position(x + 1, y));
-            positions.push(new Position(x, y + 1));
-          }
-          break;
-        case 1:
-          {
-            positions.push(new Position(x, y));
-            positions.push(new Position(x - 1, y));
-            positions.push(new Position(x, y - 1));
-            positions.push(new Position(x + 1, y));
-          }
-          break;
-        case 2:
-          {
-            positions.push(new Position(x, y));
-            positions.push(new Position(x, y - 1));
-            positions.push(new Position(x - 1, y));
-            positions.push(new Position(x, y + 1));
-          }
-          break;
-        case 3:
-          {
-            positions.push(new Position(x, y));
-            positions.push(new Position(x - 1, y));
-            positions.push(new Position(x, y + 1));
-            positions.push(new Position(x + 1, y));
-          }
-          break;
-      }
-      return positions;
-    }
-  
-    getNextPosition() {
-      return (this.position + 1) % 4;
-    }
-  }
-  
-  class ZShape extends Shape {
-    constructor(x, y) {
-      let blocks = [];
-      blocks.push(new Block(x, y));
-      blocks.push(new Block(x, y - 1));
-      blocks.push(new Block(x + 1, y));
-      blocks.push(new Block(x + 1, y + 1));
-      super(blocks);
-      this.position = 0;
-    }
-  
-    rotate() {
-      let blocks = this.rotatePositions().map(p => new Block(p.x, p.y));
-      this.clear();
-      this.addBlocks(blocks);
-      this.position = this.getNextPosition();
-    }
-  
-    rotatePositions() {
-      let pos = this.getBlocks()
-        .shift()
-        .getPosition();
-      let x = pos.x;
-      let y = pos.y;
-      let positions = [];
-      switch (this.getNextPosition()) {
-        case 0:
-          {
-            positions.push(new Position(x, y));
-            positions.push(new Position(x, y - 1));
-            positions.push(new Position(x + 1, y));
-            positions.push(new Position(x + 1, y + 1));
-          }
-          break;
-        case 1:
-          {
-            positions.push(new Position(x, y));
-            positions.push(new Position(x - 1, y));
-            positions.push(new Position(x, y - 1));
-            positions.push(new Position(x + 1, y - 1));
-          }
-          break;
-      }
-      return positions;
-    }
-  
-    getNextPosition() {
-      return (this.position + 1) % 2;
-    }
-  }
-  
-  class Line extends Shape {
-    constructor(x, y) {
-      let blocks = [];
-      blocks.push(new Block(x, y));
-      blocks.push(new Block(x - 1, y));
-      blocks.push(new Block(x + 1, y));
-      blocks.push(new Block(x + 2, y));
-      super(blocks);
-      this.position = 0;
-    }
-  
-    rotate() {
-      let blocks = this.rotatePositions().map(p => new Block(p.x, p.y));
-      this.clear();
-      this.addBlocks(blocks);
-      this.position = this.getNextPosition();
-    }
-  
-    rotatePositions() {
-      let pos = this.getBlocks()
-        .shift()
-        .getPosition();
-      let x = pos.x;
-      let y = pos.y;
-      let positions = [];
-      switch (this.getNextPosition()) {
-        case 0:
-          {
-            positions.push(new Position(x, y));
-            positions.push(new Position(x - 1, y));
-            positions.push(new Position(x + 1, y));
-            positions.push(new Position(x + 2, y));
-          }
-          break;
-        case 1:
-          {
-            positions.push(new Position(x, y));
-            positions.push(new Position(x, y - 1));
-            positions.push(new Position(x, y + 1));
-            positions.push(new Position(x, y + 2));
-          }
-          break;
-      }
-      return positions;
-    }
-  
-    getNextPosition() {
-      return (this.position + 1) % 2;
-    }
-  }
-  
-  class Board {
-    constructor() {
-      this.blocks = [];
-      this.shapes = [];
-      this.interval = undefined;
-      this.loopInterval = 1000;
-      this.gameOver = true;
-      this.loopIntervalFast = parseInt(1000 / 27);
-      this.init();
-      this.score = 0;
-    }
-  
-    setScore(value) {
-      this.score = value;
-      $("#score").text(this.score);
-    }
-  
-    getScore() {
-      return this.score;
-    }
-  
-    init() {
-      $(".empty").each(function(index, ele) {
-        let x = parseInt(index / 10);
-        let y = index % 10;
-        $(ele).css({
-          left: y * $(ele).innerWidth() + "px",
-          top: x * $(ele).innerHeight() + "px"
-        });
-      });
-      $("#message").text("Tetris");
-      window.animatelo.flash("#new-game", {
-        duration: 2500,
-        iterations: Infinity
-      });
-    }
-  
-    newGame() {
-      for (let shape of this.shapes) {
-        this.removeShape(shape);
-        this.addBlocks(shape.getBlocks());
-      }
-      for (let block of this.blocks) {
-        block.destroy();
-      }
-      this.blocks = [];
-      this.gameOver = false;
-      this.initGameLoop(this.loopInterval);
-      this.setScore(0);
-      $("#banner").hide();
-    }
-  
-    initGameLoop(value) {
-      if (this.interval) {
-        clearInterval(this.interval);
-      }
-      let ref = this;
-      this.interval = setInterval(function() {
-        ref.gameLoop();
-      }, value);
-    }
-  
-    gameLoop() {
-      this.renderShapes();
-      this.renderBlocks();
-      this.spawnShapes();
-      this.gameUpdate();
-      console.log("Shapes Length:" + this.shapes.length);
-      console.log("Blocks Length:" + this.blocks.length);
-    }
-  
-    gameUpdate() {
-      if (this.isGameOver()) {
-        this.gameOver = true;
-        if (this.interval) {
-          clearInterval(this.interval);
-          this.interval = undefined;
-        }
-        $("#banner").show();
-        $("#message").text("Game Over!");
-        $("#new-game").text("Tap here to start again!");
-      }
-    }
-  
-    isGameOver() {
-      for (let block of this.blocks) {
-        let pos = block.getPosition();
-        if (pos.x === 0 && pos.y === 4) {
-          return true;
+
+});
+
+app.Board = Backbone.Collection.extend({
+
+  model: app.Block
+
+});
+
+app.BlockView = Backbone.View.extend({
+
+  initialize: function () {
+    var self = this;
+    this.render();
+    this.model.on('change', _.bind(this.render, this));
+  },
+
+  render: function () {
+    this.clearCanvas();
+    var self = this;
+    var shape = this.model.get('shape');
+    var x_pos = this.model.get('x') * app.blockSize;
+    var y_pos = this.model.get('y') * app.blockSize;
+    for (var y = 0; y < shape.length; y++) {
+      var row = shape[y];
+      for (var x = 0; x < row.length; x++) {
+        if (row[x] == 1) {
+          self.stamp(x_pos + (x * app.blockSize), y_pos + (y * app.blockSize));
         }
       }
+    }
+    app.events.trigger('blockRendered');
+    return this;
+  },
+
+  clearCanvas: function () {
+    app.context.clearRect(0, 0, app.canvas.width, app.canvas.height);
+
+  },
+
+  stamp: function (x, y) {
+    app.context.beginPath();
+    app.context.rect(x, y, app.blockSize, app.blockSize);
+    app.context.lineWidth = 1;
+    app.context.strokeStyle = 'white';
+    app.context.stroke();
+  }
+
+});
+
+app.BoardView = Backbone.View.extend({
+
+  el: $('canvas'),
+
+  paused: false,
+
+  muted: false,
+
+  gameOver: false,
+
+  /* Initialize board view */
+  initialize: function () {
+    gridView = new app.GridView();
+    if (!app.logging) {
+      var gridWidth = $('#gridContainer').width();
+      var boardWidth = $('#board').width();
+      $('#gridContainer').hide();
+      $('#board').width(boardWidth - gridWidth - 60);
+    }
+    this.collection = new app.Board(app.Block);
+    gridView.clearGrid();
+    gridView.logGrid();
+    $(document).on('keydown', $.proxy(this.keyAction, this));
+    app.events.on('pause', this.pause, this);
+    app.events.on('mute', this.mute, this);
+    app.events.on('blockRendered', gridView.drawGrid, this);
+    this.start();
+  },
+
+  /* Setting the interval for the game to run. */
+  start: function () {
+    var self = this;
+    clearInterval(app.interval);
+    app.interval = setInterval(function () {
+      self.descend();
+      self.render();
+    }, 800);
+  },
+
+  /* Iterating through the collection and creating a new BlockView for each model in the collection. */
+  render: function () {
+    this.collection.each(function (model) {
+      var blockView = new app.BlockView({
+        model: model
+      });
+    }, this);
+  },
+
+  /* The below code is updating the grid, checking if the game is over, checking if there are any
+  complete rows, clearing the collection, and spawning a new block. */
+  blockLanded: function (block) {
+    this.updateGrid();
+    this.checkGameOver(block);
+    this.checkCompleteRows();
+    this.clearCollection();
+    this.spawnNewBlock();
+  },
+
+  /* Clear colletion of current block */
+  clearCollection: function () {
+    this.collection.reset();
+  },
+
+  /* Create a new block at random and add to collection */
+  spawnNewBlock: function () {
+    var shapePos = _.random(app.shapes.length - 1);
+    this.collection.add([app.shapes[shapePos]]);
+  },
+
+  /* Dispatch key commands */
+  keyAction: function (e) {
+    var code = e.keyCode || e.which;
+    if (!this.paused) {
+      if (code == 37) {
+        this.moveLeft();
+      } else if (code == 39) {
+        this.moveRight();
+      } else if (code == 40) {
+        this.moveDown();
+      } else if (code == 38) {
+        this.rotate();
+      }
+    }
+    if (code == 80) {
+      this.pause();
+    }
+    if (code == 77) {
+      this.mute();
+    }
+  },
+
+  /* Pause or unpause game */
+  pause: function () {
+    this.paused = !this.paused;
+    if (this.paused) {
+      $('#pause').html('Unpause (p)');
+      $('#message').html('Paused.')
+      $('#message').style.display = 'flex';
+      clearInterval(app.interval);
+    } else {
+      $('#pause').html('Pause (p)');
+      $('#message').html('');
+      this.start();
+    }
+  },
+
+  /* Toggle mute */
+  mute: function () {
+    this.muted = !this.muted;
+    if (this.muted) {
+      $('#mute').html('Unmute (m)');
+    } else {
+      $('#mute').html('Mute (m)');
+    }
+  },
+
+  /* Add a landed block to the underlying grid */
+  updateGrid: function () {
+    this.collection.each(function (model) {
+      gridView.updateGrid(model)
+      gridView.logGrid();
+    }, this);
+  },
+
+  checkGameOver: function (block) {
+    var blockY = block.get('y');
+    if (blockY <= 0) {
+      this.gameOver();
+    }
+  },
+
+  /* This is the game over function. It is called when the game is over. It draws the grid, plays the
+  game over audio, clears the interval, and displays the game over message. */
+  gameOver: function () {
+    gridView.drawGrid();
+    this.playAudio('gameOver');
+    clearInterval(app.interval);
+    $('#message').html('GAME OVER!')
+  },
+
+  /* Creating a new audio object and playing it. */
+  playAudio: function (key) {
+    if (!this.muted) {
+      var player = new Audio();
+      player.src = jsfxr(app.sounds[key]);
+      player.play();
+    }
+  },
+
+  /* Checking if there are any complete rows. */
+  checkCompleteRows: function () {
+    var completeRows = [];
+    for (var y = 0; y < app.grid.length; y++) {
+      var row = app.grid[y];
+      var complete = true;
+      for (var x = 0; x < row.length; x++) {
+        if (row[x] != 1) {
+          complete = false;
+        }
+      }
+      if (complete) {
+        completeRows.push(y);
+      }
+    }
+    if (completeRows.length > 0) {
+      this.clearCompleteRows(completeRows);
+    } else {
+      this.playAudio('land');
+    }
+  },
+
+  /* Clear any complete rows from the grid and add a new clean row to the top */
+  clearCompleteRows: function (completeRows) {
+    this.playAudio('completeRow');
+    for (var i = 0; i < completeRows.length; i++) {
+      var rowIndex = completeRows[i];
+      app.grid.splice(rowIndex, 1);
+      var row = [];
+      for (var x = 0; x < app.width; x++) {
+        row.push(0);
+      }
+      app.grid.unshift(row);
+    }
+    gridView.logGrid();
+  },
+
+  /* Move a block left on keyboard input */
+  moveLeft: function () {
+    var self = this;
+    this.collection.each(function (model) {
+      var newX = model.get('x') - 1;
+      if (model.get('x') > 0 && self.shapeFits(model.get('shape'), newX, model.get('y'))) {
+        model.set('x', newX);
+        self.playAudio('bluhp');
+      }
+    });
+  },
+
+  /* Move a block right on keyboard input */
+  moveRight: function () {
+    var self = this;
+    this.collection.each(function (model) {
+      var newX = model.get('x') + 1;
+      if (model.get('x') + model.get('width') < app.width && self.shapeFits(model.get('shape'), newX, model.get('y'))) {
+        model.set('x', newX);
+        self.playAudio('bluhp');
+      }
+    });
+  },
+
+  /* Move a block down on keyboard input */
+  moveDown: function () {
+    var self = this;
+    this.collection.each(function (model) {
+      var newY = model.get('y') + 1;
+      if (model.get('y') + model.get('height') < app.height && self.shapeFits(model.get('shape'), model.get('x'), newY)) {
+        model.set('y', newY);
+        self.playAudio('bluhp');
+      }
+    });
+  },
+
+  /* Automatically move a block down one step */
+  descend: function () {
+    var self = this;
+    this.collection.each(function (model) {
+      if (model.get('y') + model.get('height') < app.height && self.shapeFits(model.get('shape'), model.get('x'), model.get('y') + 1)) {
+        model.set('y', model.get('y') + 1);
+      } else {
+        self.blockLanded(model);
+      }
+    });
+  },
+
+  /* Check if a given shape is within the bounds of the play area */
+  shapeWithinBounds: function (shape, x, y) {
+    if (x < 0) {
       return false;
     }
-  
-    renderShapes() {
-      for (let shape of this.getShapes()) {
-        if (
-          this.arePositonsWithinBoard(shape.fallingPositions()) &&
-          this.areBlocksEmpty(shape.fallingPositions())
-        ) {
-          shape.fall();
-          shape.render();
-        } else {
-          this.removeShape(shape);
-          this.addBlocks(shape.getBlocks());
-          if (this.moveFast) {
-            this.initGameLoop(this.loopInterval);
-            this.moveFast = false;
-          }
-        }
+    if (x + shape[0].length > app.width) {
+      return false;
+    }
+    return true;
+  },
+
+  /* Check if a shape fits in the play area and with the other blocks */
+  rotatedShapeFits: function (shape, x, y) {
+    return this.shapeFits(shape, x, y) && this.shapeWithinBounds(shape, x, y);
+  },
+
+  /* Rotating the shape. */
+  rotate: function () {
+    var self = this;
+    this.collection.each(function (model) {
+      var transposed = _.zip.apply(_, model.get('shape'));
+      var reversed = transposed.reverse();
+      if (self.rotatedShapeFits(reversed, model.get('x'), model.get('y'))) {
+        model.set('shape', reversed);
+        var shape = model.get('shape');
+        model.set('width', shape[0].length);
+        model.set('height', shape.length);
+        self.playAudio('bluhp');
       }
-    }
-  
-    dropShape() {
-      if (!this.gameOver) {
-        this.initGameLoop(this.loopIntervalFast);
-        this.moveFast = true;
-      }
-    }
-  
-    renderBlocks() {
-      for (let x = 0; x < 16; x++) {
-        let blocks = [];
-        for (let y = 0; y < 10; y++) {
-          let block = this.getBlock(x, y);
-          if (!block) {
-            break;
-          }
-          blocks.push(block);
-        }
-        if (blocks.length == 10) {
-          let ref = this;
-          this.removeBlocks(blocks);
-          this.flashBlocks(blocks, function() {
-            ref.destroyBlocks(blocks);
-            ref.fallBlocks(x);
-            ref.setScore(ref.getScore() + 10);
-          });
-        }
-      }
-    }
-  
-    flashBlocks(blocks, callback) {
-      let anim = null;
-      for (let block of blocks) {
-        anim = block.flash();
-      }
-      anim[0].onfinish = callback;
-    }
-  
-    fallBlocks(i) {
-      for (let x = 0; x < i; x++) {
-        for (let y = 0; y < 10; y++) {
-          let block = this.getBlock(x, y);
-          if (block) {
-            block.fall();
-            block.render();
-          }
-        }
-      }
-    }
-  
-    removeBlocks(blocks) {
-      for (let block of blocks) {
-        this.blocks.splice(this.blocks.indexOf(block), 1);
-      }
-    }
-  
-    destroyBlocks(blocks) {
-      for (let block of blocks) {
-        block.destroy();
-      }
-    }
-  
-    getBlock(x, y) {
-      for (let block of this.blocks) {
-        if (block.x == x && block.y == y) {
-          return block;
-        }
-      }
-      return undefined;
-    }
-  
-    spawnShapes() {
-      if (this.shapes.length == 0) {
-        let shape = null;
-  
-        switch (this.getRandomRange(0, 4)) {
-          case 0:
-            {
-              shape = new Line(0, 4);
-            }
-            break;
-          case 1:
-            {
-              shape = new Square(0, 4);
-            }
-            break;
-          case 2:
-            {
-              shape = new LShape(0, 4);
-            }
-            break;
-          case 3:
-            {
-              shape = new ZShape(0, 4);
-            }
-            break;
-          case 4:
-            {
-              shape = new TShape(0, 4);
-            }
-            break;
-        }
-  
-        shape.init();
-        shape.render();
-        this.shapes.push(shape);
-      }
-    }
-  
-    getShapes() {
-      return Array.from(this.shapes);
-    }
-  
-    removeShape(shape) {
-      this.shapes.splice(this.shapes.indexOf(shape), 1);
-    }
-  
-    addBlocks(blocks) {
-      for (let block of blocks) {
-        this.blocks.push(block);
-      }
-    }
-  
-    arePositonsWithinBoard(positions) {
-      for (let position of positions) {
-        if (position.x >= 16 || position.y < 0 || position.y >= 10) {
-          return false;
-        }
-      }
-      return true;
-    }
-  
-    areBlocksEmpty(positions) {
-      for (let position of positions) {
-        for (let block of this.blocks) {
-          let pos = block.getPosition();
-          if (pos.x == position.x && pos.y == position.y) {
+    });
+  },
+
+  /* Check if a block collides with landed blocks */
+  shapeFits: function (shape, shapeX, shapeY) {
+    for (var y = 0; y < shape.length; y++) {
+      var row = shape[y];
+      for (var x = 0; x < row.length; x++) {
+        if (row[x] == 1) {
+          var checkX = shapeX + x;
+          var checkY = shapeY + y;
+          if (app.grid[checkY][checkX] == 1) {
             return false;
           }
         }
       }
-      return true;
     }
-  
-    leftKeyPress() {
-      for (let shape of this.shapes) {
-        if (
-          this.arePositonsWithinBoard(shape.leftPositions()) &&
-          this.areBlocksEmpty(shape.leftPositions())
-        ) {
-          shape.moveLeft();
-          shape.render();
+    return true;
+  }
+});
+
+/* Creating a new view for the controls. */
+app.ControlsView = Backbone.View.extend({
+
+  el: $('#controls'),
+
+  events: {
+    'click #pause': 'pause',
+    'click #mute': 'mute',
+  },
+
+  pause: function () {
+    app.events.trigger('pause');
+  },
+
+  mute: function () {
+    app.events.trigger('mute');
+  }
+
+});
+
+app.GridView = Backbone.View.extend({
+
+  /* Add a landed block to the underlying grid */
+  updateGrid: function (model) {
+    var shape = model.get('shape');
+    var x = model.get('x');
+    var y = model.get('y');
+    for (var shape_y = 0; shape_y < shape.length; shape_y++) {
+      var row = shape[shape_y];
+      for (var shape_x = 0; shape_x < row.length; shape_x++) {
+        if (row[shape_x] == 1) {
+          app.grid[y + shape_y][x + shape_x] = 1;
         }
       }
     }
-  
-    rotate() {
-      for (let shape of this.shapes) {
-        if (
-          this.arePositonsWithinBoard(shape.rotatePositions()) &&
-          this.areBlocksEmpty(shape.rotatePositions())
-        )
-          shape.rotate();
-        shape.init();
-        shape.render();
-      }
-    }
-  
-    rightKeyPress() {
-      for (let shape of this.shapes) {
-        if (
-          this.arePositonsWithinBoard(shape.rightPositions()) &&
-          this.areBlocksEmpty(shape.rightPositions())
-        ) {
-          shape.moveRight();
-          shape.render();
+  },
+
+  /* Draw any blocks (landed) from the underlying grid */
+  drawGrid: function () {
+    for (var y = 0; y < app.grid.length; y++) {
+      var row = app.grid[y];
+      for (var x = 0; x < row.length; x++) {
+        if (row[x] == 1) {
+          var x_pos = x * app.blockSize;
+          var y_pos = y * app.blockSize;
+          app.context.fillStyle = '#FFFFFF';
+          app.context.fillRect(x_pos, y_pos, app.blockSize, app.blockSize);
         }
       }
     }
-  
-    upKeyPress() {
-      this.rotate();
+  },
+
+  /* Reset the underlying grid to 0 */
+  clearGrid: function () {
+    app.grid = [];
+    for (var y = 0; y < app.height; y++) {
+      var row = [];
+      for (var x = 0; x < app.width; x++) {
+        row.push(0);
+      }
+      app.grid.push(row);
     }
-  
-    downKeyPress() {
-      this.dropShape();
-    }
-  
-    getRandomRange(min, max) {
-      return Math.floor(Math.random() * (max - min + 1)) + min;
+  },
+
+  /* Print out the underlying grid */
+  logGrid: function () {
+    if (app.logging) {
+      var html = '';
+      for (var y = app.grid.length - 1; y > 0; y--) {
+        var row = app.grid[y];
+        var str = 'y: ' + String('00' + y).slice(-2) + ' | ';
+        for (var x = 0; x < row.length; x++) {
+          str += '<span class="grid';
+          if (row[x] == 0) {
+            str += 'Off';
+          } else {
+            str += 'On';
+          }
+          str += '">';
+          str += row[x] + ' ';
+          str += '</span>';
+        }
+        str += '<br>';
+        html += str;
+      }
+      $('.grid').html(html);
     }
   }
-  
-  let board = new Board();
-  
-  $(document).keydown(function(e) {
-    switch (e.which) {
-      case 37: // left
-        board.leftKeyPress();
-        break;
-  
-      case 38: // up
-        board.upKeyPress();
-        break;
-  
-      case 39: // right
-        board.rightKeyPress();
-        break;
-  
-      case 40: // down
-        board.downKeyPress();
-        break;
-  
-      case 78: // n
-        board.newGame();
-        break;
-  
-      default:
-        console.log(e.which);
-        break; // exit this handler for other keys
-    }
-    e.preventDefault(); // prevent the default action (scroll / move caret)
-  });
-  
-  $("#new-game").click(function() {
-    board.newGame();
-  });
-  
-  $("#down").click(function() {
-    board.downKeyPress();
-  });
-  
-  $("#rotate").click(function() {
-    board.upKeyPress();
-  });
-  
-  $("#left").click(function() {
-    board.leftKeyPress();
-  });
-  
-  $("#right").click(function() {
-    board.rightKeyPress();
-  });
-  
+});
+
+app.boot = function () {
+
+  app.canvas = document.querySelector("canvas");
+
+  app.context = app.canvas.getContext("2d");
+
+  app.context.shadowColor = 'white';
+
+  app.context.shadowBlur = 15;
+
+  app.blockSize = 20;
+
+  app.logging = true;
+
+  app.width = app.canvas.width / app.blockSize;
+
+  app.height = app.canvas.height / app.blockSize;
+
+  app.events = _.extend({}, Backbone.Events);
+
+  app.sounds = {
+    'bluhp': [2, 0.01, 0.13, 0.49, 0.33, 0.31, 0.06, 0.02, -0.9, 0.05, 0.51, 0.08, 0.08, 0.1062, 0.491, 0.12, -0.64, -0.5566, 0.68, -0.5, 0.24, 0.29, 0.12, 0.3],
+    'land': [2, , 0.103, , 0.3933, 0.4497, 0.0299, 0.0561, -0.0534, 0.4388, 0.0143, -0.3671, 0.2831, 0.8169, -0.133, 0.7848, -0.0841, -0.5874, 0.9552, -0.129, 0.4723, 0.1745, -0.0226, 0.2],
+    'completeRow': [0, 0.0007, 0.3015, 0.5485, 0.39, 0.5029, , 0.7037, 0.3194, , , 0.665, 0.228, 0.3467, 0.05, 0.5698, -0.1913, -0.0563, 0.3286, -0.0055, , 0.4958, 0.0814, 0.5],
+    'gameOver': [2, 0.0009, 0.41, 0.0873, 0.6029, 0.36, , -0.0999, -0.0799, , -0.4843, -0.0152, , -0.617, -0.0004, -0.6454, -0.12, 0.4399, 0.59, 0.1799, 0.21, 0.15, -0.24, 0.5]
+  };
+
+  app.pointsPerLine = {
+    1: 40,
+    2: 100,
+    3: 300,
+    4: 1200
+  };
+
+  app.shapes = [{
+    shape: [
+      [0, 1, 0],
+      [1, 1, 1]
+    ]
+  }, {
+    shape: [
+      [0, 1, 1],
+      [1, 1, 0]
+    ]
+  }, {
+    shape: [
+      [1, 1, 0],
+      [0, 1, 1]
+    ]
+  }, {
+    shape: [
+      [1],
+      [1],
+      [1],
+      [1]
+    ]
+  },
+  {
+    shape: [
+      [1, 1, 1, 1]
+    ]
+  }, {
+    shape: [
+      [1, 1],
+      [1, 1]
+    ]
+  }, {
+    shape: [
+      [1, 1],
+      [1, 0],
+      [1, 0]
+    ]
+  }, {
+    shape: [
+      [1, 1],
+      [0, 1],
+      [0, 1]
+    ]
+  },];
+
+  var shapePos = _.random(app.shapes.length - 1);
+  app.Block = [app.shapes[shapePos]];
+
+  app.BoardView = new app.BoardView();
+
+  // Controls:
+  new app.ControlsView();
+
+}
+
+$(function () {
+  app.boot()
+});
