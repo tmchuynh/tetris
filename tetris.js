@@ -164,6 +164,7 @@ app.BoardView = Backbone.View.extend({
     } else {
       $('#pause').html('Pause (p)');
       $('#message').html('');
+      $('#message').hide();
       this.start();
     }
   },
@@ -200,6 +201,7 @@ app.BoardView = Backbone.View.extend({
     this.playAudio('gameOver');
     clearInterval(app.interval);
     $('#message').html('GAME OVER!')
+    $('#message').show();
   },
 
   /* Creating a new audio object and playing it. */
