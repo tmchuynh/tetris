@@ -375,6 +375,7 @@ app.GridView = Backbone.View.extend({
     var shape = model.get('shape');
     var x = model.get('x');
     var y = model.get('y');
+    /* Placing the shape on the grid. */
     for (var shape_y = 0; shape_y < shape.length; shape_y++) {
       var row = shape[shape_y];
       for (var shape_x = 0; shape_x < row.length; shape_x++) {
@@ -416,7 +417,7 @@ app.GridView = Backbone.View.extend({
   logGrid: function () {
     if (app.logging) {
       var html = '';
-      for (var y = app.grid.length - 1; y > 0; y--) {
+      for (var y = 0; y < app.grid.length; y++) {
         var row = app.grid[y];
         var str = 'y: ' + String('00' + y).slice(-2) + ' | ';
         for (var x = 0; x < row.length; x++) {
